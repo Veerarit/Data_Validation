@@ -1,3 +1,9 @@
+"""
+This flow gets data from MongoDB and BigQuery then compare the number of records/documents.
+
+"""
+
+
 from dateutil import parser
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -35,7 +41,7 @@ COLLECTIONS_CONFIG = dict(
 )
 
 
-def get_mongo(min_time, max_time):
+def get_mongo(min_time: str, max_time: str) -> str:
     items = []
     col = "workspaces"
     BASE_MONGO_URL = "mongodb://localhost:{port}/?readPreference=secondary&directConnection=true&ssl=false"
@@ -58,7 +64,7 @@ def get_mongo(min_time, max_time):
     print(f"MongoDB Staging | {col}: {len(items)} document(s)")
 
 
-def get_bq(table, min_time, max_time):
+def get_bq(table: str, min_time: str, max_time: str) -> str:
     key_path = "config.json"
     credentials = service_account.Credentials.from_service_account_file(
         key_path,
