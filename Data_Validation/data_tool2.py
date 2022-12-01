@@ -1,12 +1,9 @@
-# from datatool.cli import get_bq, get_mongo
-
-
 """
 This flow gets data from MongoDB and BigQuery then compare the number of records/documents.
 
 """
 
-
+import click
 from dateutil import parser
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -15,9 +12,36 @@ import os
 from pymongo import MongoClient
 import sys
 
-#TODO Add yaml file instead of dictionary here
-with open(os.path.join(os.path.dirname(__file__), f"collections.json"), "r") as f:
-    COLLECTIONS_CONFIG = json.load(f)
+
+COLLECTIONS_CONFIG = dict(
+    audits="audit_id",
+    automations="automation_id",
+    channels="channel_id",
+    deleted_tasks="deleted_task_id",
+    feedback_company_values="feedback_company_value_id",
+    feedbacks="feedback_id",
+    memberships_log="membership_id",
+    memberships="membership_id",
+    messages="message_id",
+    payments_audits="id",
+    #payments_transcation="payments_transactions_id",
+    payments="payment_id",
+    project_groups="project_group_id",
+    projects="project_id",
+    rolesv2="rolesv2_id",
+    stripe_transaction_logs="stripe_transaction_log_id",
+    subtask_links="link_id",
+    tags="tag_id",
+    tasklists="tasklist_id",
+    tasks="task_id",
+    time_tracks="time_track_id",
+    transaction_logs="transaction_log_id",
+    users="user_id",
+    workspace_user_histories="workspace_user_histories_id",
+    # workspaces_current_membership="workspaces_current_membership_id",
+    workspaces="workspace_id",
+    workspace_members="workspace_id",
+)
 
 
 
@@ -78,6 +102,3 @@ if __name__ == "__main__":
     print(f"Timeframe : {min_date} --> {max_date}")
     get_mongo(table, min_date, max_date)
     get_bq(table, min_date, max_date)
-    #TODO print out the difference between 2 sources
-    #TODO print out the whole 24hrs period compare hour by hour
-    #TODO make it's more useful
