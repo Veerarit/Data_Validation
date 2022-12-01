@@ -9,6 +9,7 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 import os
 from pymongo import MongoClient
+import sys
 
 COLLECTIONS_CONFIG = dict(
     audits="audit_id",
@@ -41,22 +42,11 @@ COLLECTIONS_CONFIG = dict(
 )
 
 
-def get_collections_name(only_collection):
-    if only_collection:
-        return [only_collection]
-    return list(COLLECTIONS_CONFIG.keys())
 
 
-
-def get_collections_id(only_collection):
-    if only_collection:
-        return [COLLECTIONS_CONFIG.get(only_collection)]
-    return list(COLLECTIONS_CONFIG.values())
-
-
-def get_mongo(min_time, max_time):
+def get_mongo(table, min_time, max_time):
     items = []
-    col = "workspaces"
+    col = str(table)
     BASE_MONGO_URL = "mongodb://localhost:{port}/?readPreference=secondary&directConnection=true&ssl=false"
     mongo_url = BASE_MONGO_URL.format(port=47017)
     client = MongoClient(mongo_url)
@@ -74,7 +64,7 @@ def get_mongo(min_time, max_time):
     x = collection.find(query_json)
     for data in x:
         items.append(data)
-    print(f"MongoDB Staging | {col}: {len(items)} document(s)")
+    print(f"MongoDB Staging | {col} collection: {len(items)} document(s)")
 
 
 def get_bq(table, min_time, max_time):
@@ -89,8 +79,9 @@ def get_bq(table, min_time, max_time):
     )
     output = []
 
-    with open(os.path.join(os.path.dirname(__file__), f"sql/{table}.sql"), "r") as f:
-        QUERY = f.read().format(table=table, min_time=min_time, max_time=max_time)
+    with open(os.path.join(os.path.dirname(__file__), f"sql/count.sql"), "r") as f:
+        id = COLLECTIONS_CONFIG.get(f'{table}')
+        QUERY = f.read().format(table=table, id=id, min_time=min_time, max_time=max_time)
 
     query_job = client.query(QUERY)
 
@@ -103,9 +94,9 @@ def get_bq(table, min_time, max_time):
 
 
 if __name__ == "__main__":
-    table = "workspaces"
-    min_date = "2021-10-01"
-    max_date = "2021-10-16"
+    table = str(sys.argv[1])
+    min_date = str(sys.argv[2])
+    max_date = str(sys.argv[3])
     print(f"Timeframe : {min_date} --> {max_date}")
-    get_mongo(min_date, max_date)
+    get_mongo(table, min_date, max_date)
     get_bq(table, min_date, max_date)
